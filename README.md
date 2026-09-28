@@ -2,6 +2,7 @@
 
 ## Топология
 
+<img width="1110" height="335" alt="image" src="https://github.com/user-attachments/assets/0af1dbce-0475-4303-9457-8e7d52283a72" />
 
 
 ## Таблица адресации
@@ -57,10 +58,15 @@ R1(config)# banner motd ^CUnauthorized access prohibited^C
 R1(config)# interface g0/0/0
 R1(config-if)# ip address 209.165.200.230 255.255.255.248
 R1(config-if)# no shutdown
+R1(config-if)#
+%LINK-5-CHANGED: Interface GigabitEthernet0/0/0, changed state to up
 R1(config-if)# exit
 R1(config)# interface g0/0/1
 R1(config-if)# ip address 192.168.1.1 255.255.255.0
 R1(config-if)# no shutdown
+%LINK-5-CHANGED: Interface GigabitEthernet0/0/1, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/0/1, changed state to up
 R1(config-if)# exit
 R1(config)# ip route 0.0.0.0 0.0.0.0 209.165.200.225
 R1(config)# end
@@ -91,8 +97,16 @@ R2(config)# banner motd ^CUnauthorized access prohibited^C
 R2(config)# interface g0/0/0
 R2(config-if)# ip address 209.165.200.225 255.255.255.248
 R2(config-if)# no shutdown
+R2(config-if)#
+%LINK-5-CHANGED: Interface GigabitEthernet0/0/0, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/0/0, changed state to up
 R2(config-if)# exit
 R2(config)# interface loopback 1
+R2(config-if)#
+%LINK-3-UPDOWN: Interface Loopback1, changed state to down
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface Loopback1, changed state to up
 R2(config-if)# ip address 209.165.200.1 255.255.255.224
 R2(config-if)# exit
 R2(config)# end
@@ -121,6 +135,10 @@ S1(config)# banner motd ^CUnauthorized access prohibited^C
 S1(config)# interface vlan 1
 S1(config-if)# ip address 192.168.1.11 255.255.255.0
 S1(config-if)# no shutdown
+S1(config-if)#
+%LINK-3-UPDOWN: Interface Vlan1, changed state to down
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface Vlan1, changed state to up
 S1(config-if)# exit
 S1(config)# ip default-gateway 192.168.1.1
 S1(config)# end
@@ -149,6 +167,10 @@ S2(config)# banner motd ^CUnauthorized access prohibited^C
 S2(config)# interface vlan 1
 S2(config-if)# ip address 192.168.1.12 255.255.255.0
 S2(config-if)# no shutdown
+S2(config-if)#
+%LINK-3-UPDOWN: Interface Vlan1, changed state to down
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface Vlan1, changed state to up
 S2(config-if)# exit
 S2(config)# ip default-gateway 192.168.1.1
 S2(config)# end
@@ -163,13 +185,19 @@ S2# copy running-config startup-config
 ### 1.6 Проверка базовой связности
 
 ```cisco
-R1# ping 209.165.200.225
-!!!!!
-Success rate is 100 percent (5/5)
+R1#ping 209.165.200.225
 
-R1# ping 209.165.200.1
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 209.165.200.225, timeout is 2 seconds:
 !!!!!
-Success rate is 100 percent (5/5)
+Success rate is 100 percent (5/5), round-trip min/avg/max = 0/0/0 ms
+
+R1#ping 209.165.200.1
+
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 209.165.200.1, timeout is 2 seconds:
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 0/0/0 ms
 ```
 
 ---
@@ -194,15 +222,33 @@ R1# copy running-config startup-config
 ```
 
 ### 2.2 Проверка NAT
+#### PC-B
+```cmd
+C:\>ping 209.165.200.1
 
-#### PC-B → ping 209.165.200.1
+Pinging 209.165.200.1 with 32 bytes of data:
 
+Reply from 209.165.200.1: bytes=32 time<1ms TTL=254
+Reply from 209.165.200.1: bytes=32 time<1ms TTL=254
+Reply from 209.165.200.1: bytes=32 time<1ms TTL=254
+Reply from 209.165.200.1: bytes=32 time<1ms TTL=254
+
+Ping statistics for 209.165.200.1:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+```
 ```cisco
-R1# show ip nat translations
-Pro Inside global      Inside local       Outside local      Outside global
---- 209.165.200.226    192.168.1.3        ---                ---
-icmp 209.165.200.226:1 192.168.1.3:1     209.165.200.1:1    209.165.200.1:1
-Total number of translations: 2
+R1#show ip nat translations 
+Pro  Inside global     Inside local       Outside local      Outside global
+icmp 209.165.200.226:1 192.168.1.3:1      209.165.200.1:1    209.165.200.1:1
+icmp 209.165.200.226:2 192.168.1.3:2      209.165.200.1:2    209.165.200.1:2
+icmp 209.165.200.226:3 192.168.1.3:3      209.165.200.1:3    209.165.200.1:3
+icmp 209.165.200.226:4 192.168.1.3:4      209.165.200.1:4    209.165.200.1:4
+icmp 209.165.200.226:5 192.168.1.3:5      209.165.200.1:5    209.165.200.1:5
+icmp 209.165.200.226:6 192.168.1.3:6      209.165.200.1:6    209.165.200.1:6
+icmp 209.165.200.226:7 192.168.1.3:7      209.165.200.1:7    209.165.200.1:7
+icmp 209.165.200.226:8 192.168.1.3:8      209.165.200.1:8    209.165.200.1:8
 ```
 
 **Вопрос:** Во что был транслирован внутренний локальный адрес PC-B?  
@@ -211,56 +257,95 @@ Total number of translations: 2
 **Вопрос:** Какой тип адреса NAT является переведённым адресом?  
 **Ответ:** Внутренний глобальный (Inside global).
 
-#### PC-A → ping 209.165.200.1
+#### PC-A 
+```cmd
+C:\>ping 209.165.200.1
 
+Pinging 209.165.200.1 with 32 bytes of data:
+
+Reply from 209.165.200.1: bytes=32 time<1ms TTL=254
+Reply from 209.165.200.1: bytes=32 time<1ms TTL=254
+Reply from 209.165.200.1: bytes=32 time<1ms TTL=254
+Reply from 209.165.200.1: bytes=32 time<1ms TTL=254
+
+Ping statistics for 209.165.200.1:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+```
 ```cisco
-R1# show ip nat translations
-Pro Inside global      Inside local       Outside local      Outside global
---- 209.165.200.227    192.168.1.2        ---                ---
-icmp 209.165.200.227:1 192.168.1.2:1     209.165.200.1:1    209.165.200.1:1
-icmp 209.165.200.226:1 192.168.1.3:1     209.165.200.1:1    209.165.200.1:1
-Total number of translations: 4
+R1#show ip nat translations 
+Pro  Inside global     Inside local       Outside local      Outside global
+icmp 209.165.200.226:1 192.168.1.2:1      209.165.200.1:1    209.165.200.1:1
+icmp 209.165.200.226:2 192.168.1.2:2      209.165.200.1:2    209.165.200.1:2
+icmp 209.165.200.226:3 192.168.1.2:3      209.165.200.1:3    209.165.200.1:3
+icmp 209.165.200.226:4 192.168.1.2:4      209.165.200.1:4    209.165.200.1:4
 ```
 
-#### S1 → ping 209.165.200.1
-
+#### S1 
 ```cisco
-R1# show ip nat translations
-Pro Inside global      Inside local       Outside local      Outside global
---- 209.165.200.226    192.168.1.3        ---                ---
---- 209.165.200.227    192.168.1.2        ---                ---
---- 209.165.200.228    192.168.1.11       ---                ---
-icmp 209.165.200.226:1 192.168.1.3:1     209.165.200.1:1    209.165.200.1:1
-icmp 209.165.200.228:0 192.168.1.11:0    209.165.200.1:0    209.165.200.1:0
-Total number of translations: 5
+S1#ping 209.165.200.1
+
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 209.165.200.1, timeout is 2 seconds:
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 0/0/0 ms
+```
+```cisco
+R1#show ip nat translations 
+Pro  Inside global     Inside local       Outside local      Outside global
+icmp 209.165.200.226:10192.168.1.11:10    209.165.200.1:10   209.165.200.1:10
+icmp 209.165.200.226:2 192.168.1.11:2     209.165.200.1:2    209.165.200.1:2
+icmp 209.165.200.226:3 192.168.1.11:3     209.165.200.1:3    209.165.200.1:3
+icmp 209.165.200.226:4 192.168.1.11:4     209.165.200.1:4    209.165.200.1:4
+icmp 209.165.200.226:5 192.168.1.11:5     209.165.200.1:5    209.165.200.1:5
+icmp 209.165.200.226:6 192.168.1.11:6     209.165.200.1:6    209.165.200.1:6
+icmp 209.165.200.226:7 192.168.1.11:7     209.165.200.1:7    209.165.200.1:7
+icmp 209.165.200.226:8 192.168.1.11:8     209.165.200.1:8    209.165.200.1:8
+icmp 209.165.200.226:9 192.168.1.11:9     209.165.200.1:9    209.165.200.1:9
 ```
 
-#### S2 → ping 209.165.200.1 (ожидаемый сбой)
+#### S2  
+Ожидаемый сбой
+```cisco
+S2#ping 209.165.200.1
 
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 209.165.200.1, timeout is 2 seconds:
+.....
+Success rate is 0 percent (0/5)
 ```
-%NAT-6-ADDR_ALLOC_FAILURE: Address allocation failed; pool 1 may be exhausted
+```cisco
+R1#show ip nat statistics 
+Total translations: 0 (0 static, 0 dynamic, 0 extended)
+Outside Interfaces: GigabitEthernet0/0/0
+Inside Interfaces: GigabitEthernet0/0/1
+Hits: 8  Misses: 16
+Expired translations: 12
+Dynamic mappings:
+-- Inside Source
+access-list 1 pool PUBLIC_ACCESS refCount 0
+ pool PUBLIC_ACCESS: netmask 255.255.255.248
+       start 209.165.200.226 end 209.165.200.228
+       type generic, total addresses 3 , allocated 0 (0%), misses 4
 ```
 
 **Причина:** в пуле всего 3 адреса, а попытка четвёртого устройства — превышение лимита. NAT работает по принципу «один-к-одному».
 
 #### Просмотр времени жизни трансляции
-
+К сожалению, CPT  не поддерживает ключ verbose  команды show ip nat translations.
+Время жизни трансляций: 24 часа для NAT «один-к-одному», 1 минута для PAT (по умолчанию IOS).
 ```cisco
-R1# show ip nat translations verbose
-Pro Inside global      Inside local       Outside local      Outside global
---- 209.165.200.226    192.168.1.3        ---                ---
-    create: 09/23/19 15:35:27, use: 09/23/19 15:35:27, timeout: 23:56:42
-    Map-Id(In): 1
-Total number of translations: 5
+R1#show ip nat translations verbose
+                            ^
+% Invalid input detected at '^' marker.
 ```
 
-**Ответ:** время жизни — 24 часа (23:56:42).
 
 #### Очистка перед PAT
 
 ```cisco
-R1# clear ip nat translations *
-R1# clear ip nat statistics
+R1#clear ip nat translation *
 ```
 
 ---
@@ -279,13 +364,31 @@ R1(config)# no ip nat inside source list 1 pool PUBLIC_ACCESS
 R1(config)# ip nat inside source list 1 pool PUBLIC_ACCESS overload
 ```
 
-#### Проверка: PC-B → ping 209.165.200.1
+#### Проверка
+##### PC-B
+```cmd
+C:\>ping 209.165.200.1
 
+Pinging 209.165.200.1 with 32 bytes of data:
+
+Reply from 209.165.200.1: bytes=32 time<1ms TTL=254
+Reply from 209.165.200.1: bytes=32 time<1ms TTL=254
+Reply from 209.165.200.1: bytes=32 time<1ms TTL=254
+Reply from 209.165.200.1: bytes=32 time<1ms TTL=254
+
+Ping statistics for 209.165.200.1:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+```
 ```cisco
-R1# show ip nat translations
-Pro Inside global      Inside local       Outside local      Outside global
-icmp 209.165.200.226:1 192.168.1.3:1     209.165.200.1:1    209.165.200.1:1
-Total number of translations: 1
+R1#show ip nat translations
+Pro  Inside global     Inside local       Outside local      Outside global
+icmp 209.165.200.228:5 192.168.1.3:5      209.165.200.1:5    209.165.200.1:5
+icmp 209.165.200.228:6 192.168.1.3:6      209.165.200.1:6    209.165.200.1:6
+icmp 209.165.200.228:7 192.168.1.3:7      209.165.200.1:7    209.165.200.1:7
+icmp 209.165.200.228:8 192.168.1.3:8      209.165.200.1:8    209.165.200.1:8
 ```
 
 **Вопрос:** Во что был транслирован внутренний локальный адрес PC-B?  
@@ -297,37 +400,58 @@ Total number of translations: 1
 **Вопрос:** Чем отличаются выходные данные от упражнения NAT?  
 **Ответ:** В PAT используется один и тот же IP-адрес с разными портами для разных сессий. Время трансляции — 1 минута вместо 24 часов.
 
-#### Проверка: PC-A → ping 209.165.200.1
+#### Проверка
+##### PC-A 
+```cmd
+C:\>ping 209.165.200.1
 
-```cisco
-R1# show ip nat translations
-Pro Inside global      Inside local       Outside local      Outside global
-icmp 209.165.200.226:1 192.168.1.2:1     209.165.200.1:1    209.165.200.1:1
-Total number of translations: 1
+Pinging 209.165.200.1 with 32 bytes of data:
+
+Reply from 209.165.200.1: bytes=32 time<1ms TTL=254
+Reply from 209.165.200.1: bytes=32 time<1ms TTL=254
+Reply from 209.165.200.1: bytes=32 time<1ms TTL=254
+Reply from 209.165.200.1: bytes=32 time<1ms TTL=254
+
+Ping statistics for 209.165.200.1:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
 ```
 
-> **Наблюдение:** используется тот же глобальный адрес `209.165.200.226`, но с другим портом при следующей сессии.
+```cisco
+R1#show ip nat translations
+Pro  Inside global     Inside local       Outside local      Outside global
+icmp 209.165.200.228:5 192.168.1.2:5      209.165.200.1:5    209.165.200.1:5
+icmp 209.165.200.228:6 192.168.1.2:6      209.165.200.1:6    209.165.200.1:6
+icmp 209.165.200.228:7 192.168.1.2:7      209.165.200.1:7    209.165.200.1:7
+icmp 209.165.200.228:8 192.168.1.2:8      209.165.200.1:8    209.165.200.1:8
+```
+
+Bспользуется тот же глобальный адрес `209.165.200.228`, но с другим портом при следующей сессии.
 
 #### Одновременный трафик (PC-A и PC-B: `ping -t 209.165.200.1`)
 
 ```cisco
-R1# show ip nat translations
-Pro Inside global      Inside local       Outside local      Outside global
-icmp 209.165.200.226:1 192.168.1.2:1     209.165.200.1:1    209.165.200.1:1
-icmp 209.165.200.226:2 192.168.1.3:1     209.165.200.1:1    209.165.200.1:2
-Total number of translations: 2
+R1#show ip nat translations
+Pro  Inside global     Inside local       Outside local      Outside global
+icmp 209.165.200.228:1024 192.168.1.3:9      209.165.200.1:9    209.165.200.1:1024
+icmp 209.165.200.228:1025 192.168.1.3:10     209.165.200.1:10   209.165.200.1:1025
+icmp 209.165.200.228:1026 192.168.1.3:11     209.165.200.1:11   209.165.200.1:1026
+icmp 209.165.200.228:1027 192.168.1.3:12     209.165.200.1:12   209.165.200.1:1027
+icmp 209.165.200.228:10 192.168.1.2:10     209.165.200.1:10   209.165.200.1:10
+icmp 209.165.200.228:11 192.168.1.2:11     209.165.200.1:11   209.165.200.1:11
+icmp 209.165.200.228:12 192.168.1.2:12     209.165.200.1:12   209.165.200.1:12
+icmp 209.165.200.228:9 192.168.1.2:9      209.165.200.1:9    209.165.200.1:9
 ```
 
 **Вопрос:** Как маршрутизатор отслеживает, куда идут ответы?  
-**Ответ:** По номерам портов (например, 226:1 для PC-A и 226:2 для PC-B).
+**Ответ:** По номерам портов, например, 228:11 для PC-A и 228:1024 для PC-B.
 
-#### Остановка пингов и очистка
-```
-(на PC-A и PC-B нажать Ctrl+C)
-```
+#### Останавливаем пинги на ПК и чистим R1
+
+
 ```cisco
-R1# clear ip nat translations *
-R1# clear ip nat statistics
+R1# clear ip nat translation *
 ```
 
 ### 3.2 PAT с перегрузкой интерфейса (interface overload)
@@ -343,33 +467,59 @@ R1(config)# no ip nat pool PUBLIC_ACCESS
 R1(config)# ip nat inside source list 1 interface g0/0/0 overload
 ```
 
-#### Проверка: PC-B → ping 209.165.200.1
+#### Проверка
+##### PC-B
+```cmd
+C:\>ping 209.165.200.1
+
+Pinging 209.165.200.1 with 32 bytes of data:
+
+Reply from 209.165.200.1: bytes=32 time<1ms TTL=254
+Reply from 209.165.200.1: bytes=32 time<1ms TTL=254
+Reply from 209.165.200.1: bytes=32 time<1ms TTL=254
+Reply from 209.165.200.1: bytes=32 time<1ms TTL=254
+
+Ping statistics for 209.165.200.1:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+```
 
 ```cisco
-R1# show ip nat translations
-Pro Inside global      Inside local       Outside local      Outside global
-icmp 209.165.200.230:1 192.168.1.3:1     209.165.200.1:1    209.165.200.1:1
-Total number of translations: 1
+R1#show ip nat translations
+Pro  Inside global     Inside local       Outside local      Outside global
+icmp 209.165.200.230:13 192.168.1.3:13     209.165.200.1:13   209.165.200.1:13
+icmp 209.165.200.230:14 192.168.1.3:14     209.165.200.1:14   209.165.200.1:14
+icmp 209.165.200.230:15 192.168.1.3:15     209.165.200.1:15   209.165.200.1:15
+icmp 209.165.200.230:16 192.168.1.3:16     209.165.200.1:16   209.165.200.1:16
 ```
 
 #### Множественный трафик (PC-A, PC-B, S1, S2)
 
 ```cisco
-R1# show ip nat translations
-Pro Inside global      Inside local       Outside local      Outside global
-icmp 209.165.200.230:3 192.168.1.11:1    209.165.200.1:1    209.165.200.1:3
-icmp 209.165.200.230:2 192.168.1.2:1     209.165.200.1:1    209.165.200.1:2
-icmp 209.165.200.230:4 192.168.1.3:1     209.165.200.1:1    209.165.200.1:4
-icmp 209.165.200.230:1 192.168.1.12:1    209.165.200.1:1    209.165.200.1:1
-Total number of translations: 4
+R1#show ip nat translations
+Pro  Inside global     Inside local       Outside local      Outside global
+icmp 209.165.200.230:1024 192.168.1.12:6     209.165.200.1:6    209.165.200.1:1024
+icmp 209.165.200.230:1025 192.168.1.12:7     209.165.200.1:7    209.165.200.1:1025
+icmp 209.165.200.230:1026 192.168.1.12:8     209.165.200.1:8    209.165.200.1:1026
+icmp 209.165.200.230:1027 192.168.1.12:9     209.165.200.1:9    209.165.200.1:1027
+icmp 209.165.200.230:1028 192.168.1.12:10    209.165.200.1:10   209.165.200.1:1028
+icmp 209.165.200.230:10 192.168.1.11:10    209.165.200.1:10   209.165.200.1:10
+icmp 209.165.200.230:13 192.168.1.2:13     209.165.200.1:13   209.165.200.1:13
+icmp 209.165.200.230:14 192.168.1.2:14     209.165.200.1:14   209.165.200.1:14
+icmp 209.165.200.230:15 192.168.1.2:15     209.165.200.1:15   209.165.200.1:15
+icmp 209.165.200.230:16 192.168.1.2:16     209.165.200.1:16   209.165.200.1:16
+icmp 209.165.200.230:17 192.168.1.3:17     209.165.200.1:17   209.165.200.1:17
+icmp 209.165.200.230:18 192.168.1.3:18     209.165.200.1:18   209.165.200.1:18
+icmp 209.165.200.230:19 192.168.1.3:19     209.165.200.1:19   209.165.200.1:19
+icmp 209.165.200.230:20 192.168.1.3:20     209.165.200.1:20   209.165.200.1:20
+icmp 209.165.200.230:6 192.168.1.11:6     209.165.200.1:6    209.165.200.1:6
+icmp 209.165.200.230:7 192.168.1.11:7     209.165.200.1:7    209.165.200.1:7
+icmp 209.165.200.230:8 192.168.1.11:8     209.165.200.1:8    209.165.200.1:8
+icmp 209.165.200.230:9 192.168.1.11:9     209.165.200.1:9    209.165.200.1:9
 ```
 
-**Наблюдение:** все внутренние глобальные адреса используют один IP-адрес `209.165.200.230` с разными портами.
-
-#### Остановка пингов
-```
-(на PC-A и PC-B нажать Ctrl+C)
-```
+Все внутренние глобальные адреса используют один IP-адрес `209.165.200.230` с разными портами.
 
 ---
 
@@ -378,8 +528,7 @@ Total number of translations: 4
 ### 4.1 Очистка трансляций
 
 ```cisco
-R1# clear ip nat translations *
-R1# clear ip nat statistics
+R1# clear ip nat translation *
 ```
 
 ### 4.2 Настройка статического NAT
@@ -393,48 +542,38 @@ R1(config)# ip nat inside source static 192.168.1.2 209.165.200.229
 ### 4.3 Проверка таблицы NAT
 
 ```cisco
-R1# show ip nat translations
-Pro Inside global      Inside local       Outside local      Outside global
---- 209.165.200.229    192.168.1.2        ---                ---
-Total number of translations: 1
+R1#show ip nat translations
+Pro  Inside global     Inside local       Outside local      Outside global
+---  209.165.200.229   192.168.1.2        ---                ---
 ```
 
 ### 4.4 Проверка доступа из внешней сети
 
-С R2 выполнить ping на `209.165.200.229`:
 
 ```cisco
-R2# ping 209.165.200.229
+R2#ping 209.165.200.229
+
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 209.165.200.229, timeout is 2 seconds:
 !!!!!
-Success rate is 100 percent (5/5)
+Succes
 ```
 
 ### 4.5 Проверка трансляций при входящем трафике
 
 ```cisco
-R1# show ip nat translations
-Pro Inside global      Inside local       Outside local      Outside global
---- 209.165.200.229    192.168.1.2        ---                ---
-icmp 209.165.200.229:3 192.168.1.2:3     209.165.200.225:3  209.165.200.225:3
-Total number of translations: 2
+R1#show ip nat translations
+Pro  Inside global     Inside local       Outside local      Outside global
+icmp 209.165.200.229:10192.168.1.2:10     209.165.200.225:10 209.165.200.225:10
+icmp 209.165.200.229:2 192.168.1.2:2      209.165.200.225:2  209.165.200.225:2
+icmp 209.165.200.229:3 192.168.1.2:3      209.165.200.225:3  209.165.200.225:3
+icmp 209.165.200.229:4 192.168.1.2:4      209.165.200.225:4  209.165.200.225:4
+icmp 209.165.200.229:5 192.168.1.2:5      209.165.200.225:5  209.165.200.225:5
+icmp 209.165.200.229:6 192.168.1.2:6      209.165.200.225:6  209.165.200.225:6
+icmp 209.165.200.229:7 192.168.1.2:7      209.165.200.225:7  209.165.200.225:7
+icmp 209.165.200.229:8 192.168.1.2:8      209.165.200.225:8  209.165.200.225:8
+icmp 209.165.200.229:9 192.168.1.2:9      209.165.200.225:9  209.165.200.225:9
+---  209.165.200.229   192.168.1.2        ---                ---
 ```
 
-**Вывод:** статический NAT работает корректно.
-
----
-
-## Сводная таблица по интерфейсам маршрутизаторов
-
-| Модель | Интерфейс Ethernet №1 | Интерфейс Ethernet №2 | Последовательный №1 | Последовательный №2 |
-|--------|----------------------|----------------------|---------------------|---------------------|
-| 1800 | Fast Ethernet 0/0 (F0/0) | Fast Ethernet 0/1 (F0/1) | Serial 0/0/0 (S0/0/0) | Serial 0/0/1 (S0/0/1) |
-| 1900 | Gigabit Ethernet 0/0 (G0/0) | Gigabit Ethernet 0/1 (G0/1) | Serial 0/0/0 (S0/0/0) | Serial 0/0/1 (S0/0/1) |
-| 2801 | Fast Ethernet 0/0 (F0/0) | Fast Ethernet 0/1 (F0/1) | Serial 0/1/0 (S0/1/0) | Serial 0/1/1 (S0/1/1) |
-| 2811 | Fast Ethernet 0/0 (F0/0) | Fast Ethernet 0/1 (F0/1) | Serial 0/0/0 (S0/0/0) | Serial 0/0/1 (S0/0/1) |
-| 2900 | Gigabit Ethernet 0/0 (G0/0) | Gigabit Ethernet 0/1 (G0/1) | Serial 0/0/0 (S0/0/0) | Serial 0/0/1 (S0/0/1) |
-| 4221 | Gigabit Ethernet 0/0/0 (G0/0/0) | Gigabit Ethernet 0/0/1 (G0/0/1) | Serial 0/1/0 (S0/1/0) | Serial 0/1/1 (S0/1/1) |
-| 4300 | Gigabit Ethernet 0/0/0 (G0/0/0) | Gigabit Ethernet 0/0/1 (G0/0/1) | Serial 0/1/0 (S0/1/0) | Serial 0/1/1 (S0/1/1) |
-
----
-
-**Конец лабораторной работы**
+Статический NAT работает корректно.
